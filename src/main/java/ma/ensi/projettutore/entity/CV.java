@@ -1,5 +1,6 @@
 package ma.ensi.projettutore.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,29 +30,23 @@ public class CV {
     @Column(nullable = false)
     private String extractedText;
 
-    // Composition with User (1:1)
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    @JsonIgnore
     private User user;
 
-    // ManyToMany with Skill
     @ManyToMany
     @JoinTable(
-        name = "cv_skill",
-        joinColumns = @JoinColumn(name = "cv_id"),
-        inverseJoinColumns = @JoinColumn(name = "skill_id")
+            name = "cv_skill",
+            joinColumns = @JoinColumn(name = "cv_id"),
+            inverseJoinColumns = @JoinColumn(name = "skill_id")
     )
+    @JsonIgnore
     private Set<Skill> skills = new HashSet<>();
 
-    public void uploadCV() {
-        // Logic for uploading CV
-    }
+    public void uploadCV() {}
 
-    public void extractSkills() {
-        // Logic for extracting skills from CV text
-    }
+    public void extractSkills() {}
 
-    public void updateCV() {
-        // Logic for updating CV
-    }
+    public void updateCV() {}
 }
