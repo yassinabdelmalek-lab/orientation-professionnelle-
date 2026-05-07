@@ -1,24 +1,42 @@
 pipeline {
     agent any
+    
+    environment {
+        DOCKER_HUB_USER = 'ton-username'
+        APP_NAME = 'mon-application-backend'
+    }
 
     stages {
-        stage('Validation Connexion') {
+        stage('Checkout') {
             steps {
-                echo '✅ SSH GitHub : OK'
+                checkout scm
             }
         }
-        stage('Validation Docker') {
+
+        stage('Build Image') {
             steps {
-                // On vérifie si Jenkins peut appeler le moteur Docker de la VM
-                sh 'docker ps'
-                echo '✅ Docker Socket : OK'
+                // Construction de l'image
+                sh "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:${BUILD_NUMBER} ."
+                sh "docker tag ${DOCKER_HUB_USER}/${APP_NAME}:${BUILD_NUMBER} ${DOCKER_HUB_USER}/${APP_NAME}:latest"
             }
         }
-        stage('Infos Système') {
+
+        stage('Push to Docker Hub') {
             steps {
-                sh 'uname -a'
-                sh 'whoami'
+                // Utilisation des credentials Jenkins pour se connecter à Docker Hub
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', passwordVariable: 'DOCKER_HUB_PASSWORD', usernameVariable: 'DOCKER_HUB_USERNAME')]) {
+                    sh "echo \$DOCKER_HUB_PASSWORD | docker login -u \$DOCKER_HUB_USERNAME --password-stdin"
+                    sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:${BUILD_NUMBER}"
+                    sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:latest"
+                }
             }
+        }
+    }
+    
+    post {
+        always {
+            // Nettoyage pour ne pas encombrer le disque de la VM Azure
+            sh "docker logout"
         }
     }
 }
