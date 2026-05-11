@@ -21,13 +21,18 @@ pipeline {
             }
         }
 
+
+    
         stage('Push to Docker Hub') {
             steps {
-                // Utilisation des credentials Jenkins pour se connecter à Docker Hub
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', passwordVariable: 'DOCKER_HUB_PASSWORD', usernameVariable: 'DOCKER_HUB_USERNAME')]) {
-                    sh "echo \$DOCKER_HUB_PASSWORD | docker login -u \$DOCKER_HUB_USERNAME --password-stdin"
-                    sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:${BUILD_NUMBER}"
-                    sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:latest"
+                withCredentials([usernamePassword(
+                    credentialsId: 'docker-hub-creds',
+                    passwordVariable: 'DOCKER_HUB_PASSWORD',
+                    usernameVariable: 'DOCKER_HUB_USERNAME'
+                )]) {
+                    sh "echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin"
+                    sh "docker push $DOCKER_HUB_USERNAME/${APP_NAME}:${BUILD_NUMBER}"  // ← utiliser DOCKER_HUB_USERNAME
+                    sh "docker push $DOCKER_HUB_USERNAME/${APP_NAME}:latest"
                 }
             }
         }
