@@ -8,6 +8,8 @@ import ma.ensi.projettutore.entity.Admin;
 import ma.ensi.projettutore.entity.Employee;
 import ma.ensi.projettutore.entity.Student;
 import ma.ensi.projettutore.entity.User;
+import ma.ensi.projettutore.entity.enums.Role;
+import ma.ensi.projettutore.exception.BadRequestException;
 import ma.ensi.projettutore.exception.ResourceNotFoundException;
 import ma.ensi.projettutore.repository.UserRepository;
 import ma.ensi.projettutore.security.JwtUtil;
@@ -19,6 +21,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -45,28 +49,36 @@ public class AuthServiceImpl implements AuthService {
                 .token(token)
                 .refreshToken(refreshToken)
                 .email(user.getEmail())
-                .role(user.getRole())
+                .role(user.getRole().name())
                 .build();
     }
 
     @Override
     public AuthResponse register(RegisterRequest registerRequest) {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            throw new RuntimeException("Email already in use");
+            throw new BadRequestException("Email already in use");
+        }
+
+
+        Role role = registerRequest.getRole();
+
+        if (role == Role.ADMIN) {
+            throw new BadRequestException("Admin registration is not allowed");
         }
 
         User user;
-        switch (registerRequest.getRole().toUpperCase()) {
-            case "ADMIN" -> user = new Admin();
-            case "EMPLOYEE" -> user = new Employee();
-            case "STUDENT" -> user = new Student();
-            default -> throw new RuntimeException("Invalid role: " + registerRequest.getRole());
+
+        switch (role) {
+            case EMPLOYEE -> user = new Employee();
+            case STUDENT -> user = new Student();
+            default -> throw new BadRequestException("Invalid role");
         }
+
 
         user.setName(registerRequest.getName());
         user.setEmail(registerRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        user.setRole(registerRequest.getRole());
+        user.setRole(role);
         userRepository.save(user);
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
@@ -77,7 +89,7 @@ public class AuthServiceImpl implements AuthService {
                 .token(token)
                 .refreshToken(refreshToken)
                 .email(user.getEmail())
-                .role(user.getRole())
+                .role(user.getRole().name())
                 .build();
     }
 
@@ -88,7 +100,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         if (!jwtUtil.validateToken(refreshToken, userDetails)) {
-            throw new RuntimeException("Invalid refresh token");
+            throw new BadRequestException("Invalid refresh token");
         }
         String newToken = jwtUtil.generateToken(userDetails);
         String newRefreshToken = jwtUtil.generateRefreshToken(userDetails);
@@ -96,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
                 .token(newToken)
                 .refreshToken(newRefreshToken)
                 .email(user.getEmail())
-                .role(user.getRole())
+                .role(user.getRole().name())
                 .build();
     }
 }
