@@ -10,11 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/schools")
 @RequiredArgsConstructor
-@CrossOrigin
 public class SchoolController {
 
     private final SchoolService schoolService;

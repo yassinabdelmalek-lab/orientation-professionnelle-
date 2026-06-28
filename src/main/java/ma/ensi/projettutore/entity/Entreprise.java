@@ -9,9 +9,9 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @Entity
 @EqualsAndHashCode(callSuper = true)
-public class Employee extends User {
+public class Entreprise extends User {
 
-    public Employee() { super(); }
+    public Entreprise() { super(); }
 
     public void uploadCV() {}
 

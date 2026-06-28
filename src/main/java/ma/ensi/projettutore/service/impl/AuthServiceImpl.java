@@ -5,7 +5,7 @@ import ma.ensi.projettutore.dto.request.LoginRequest;
 import ma.ensi.projettutore.dto.request.RegisterRequest;
 import ma.ensi.projettutore.dto.response.AuthResponse;
 import ma.ensi.projettutore.entity.Admin;
-import ma.ensi.projettutore.entity.Employee;
+import ma.ensi.projettutore.entity.Entreprise;
 import ma.ensi.projettutore.entity.Student;
 import ma.ensi.projettutore.entity.User;
 import ma.ensi.projettutore.entity.enums.Role;
@@ -21,8 +21,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-
 
 @Service
 @RequiredArgsConstructor
@@ -59,7 +57,6 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Email already in use");
         }
 
-
         Role role = registerRequest.getRole();
 
         if (role == Role.ADMIN) {
@@ -69,11 +66,10 @@ public class AuthServiceImpl implements AuthService {
         User user;
 
         switch (role) {
-            case EMPLOYEE -> user = new Employee();
+            case ENTREPRISE -> user = new Entreprise();
             case STUDENT -> user = new Student();
             default -> throw new BadRequestException("Invalid role");
         }
-
 
         user.setName(registerRequest.getName());
         user.setEmail(registerRequest.getEmail());
